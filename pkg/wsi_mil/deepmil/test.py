@@ -11,6 +11,7 @@ from .models import DeepMIL
 from .dataloader import Dataset_handler
 from .predict import load_model
 from collections import MutableMapping
+from pkg.wsi_mil.utils import get_device
 
 def convert_flatten(d, parent_key='', sep='_'):
     """
@@ -67,7 +68,7 @@ def fill_table(table, proba_preds, preds, ids):
     return table
 
 def main(model_path=None,  w=False, rm_duplicates=True):
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = get_device()
     model = load_model(model_path, device)
     args = model.args
     table = pd.read_csv(args.table_data)

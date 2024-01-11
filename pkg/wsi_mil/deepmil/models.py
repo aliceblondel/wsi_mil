@@ -158,7 +158,7 @@ class DeepMIL(Model):
 
     def _get_network(self):
         """_get_network.
-        Initialize the network and transfer it on the cuda device.
+        Initialize the network and transfer it on the device.
 
         :return nn.Module: MIL network.
         """

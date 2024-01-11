@@ -14,6 +14,7 @@ from .models import DeepMIL
 from .dataloader import EmbeddedWSI, Dataset_handler
 from collections import MutableMapping
 from sklearn.preprocessing import Normalizer
+from pkg.wsi_mil.utils import get_device
 
 def load_model(model_path, device):
     """Loads and prepare a learned model for prediction.
@@ -31,7 +32,7 @@ def load_model(model_path, device):
     return model
 
 def predict_test(model_path=None, data_path=None,data_table=None):
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = get_device()
     model = load_model(model_path, device)
     args = model.args
     if data_path is not None:
@@ -63,7 +64,7 @@ def predict_test(model_path=None, data_path=None,data_table=None):
 
 def predict(model, data_path):
     results = []
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = get_device()
     wsis = glob(os.path.join(data_path, 'mat', '*.npy'))
     assert wsis, "The images have to be stored directly into data_path, with a npy extension.x:  data_path/mat/slide_1.npy"
     results = {'name': [], 'pred': [], 'proba': []}

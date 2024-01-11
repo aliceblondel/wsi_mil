@@ -24,11 +24,12 @@ from pathlib import Path
 import os 
 from scipy.ndimage import zoom
 from PIL import Image
+from pkg.wsi_mil.utils import get_device
 
 class BaseVisualizer(ABC):
     def __init__(self, model, path_emb=None, path_raw=None):
         ## Model loading
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = get_device()
         self.model = load_model(model, self.device)
         self.label_encoder = self.model.label_encoder
 

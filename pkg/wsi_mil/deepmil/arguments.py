@@ -4,6 +4,7 @@ import torch
 import os
 import copy
 import yaml
+from pkg.wsi_mil.utils import get_device
 
 def get_arguments(raw_args=None, train=True, config=None):
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -61,7 +62,7 @@ def get_arguments(raw_args=None, train=True, config=None):
     args.patience_lr = args.patience_lr if args.patience_lr is None else args.patience_lr
 
     # Set device.
-    args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    args.device = get_device()
     if args.nb_tiles == 0:
         args.constant_size = False
     else:

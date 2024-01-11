@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import torch
+from pkg.wsi_mil.utils import get_device
 
 def get_arguments():
     parser = ArgumentParser()
@@ -17,5 +18,5 @@ def get_arguments():
     parser.add_argument('--nf', action='store_true', help='Use this flag when using the nextflow pipeline. Either, dont.')
     parser.add_argument('--max_nb_tiles', type=int, help='maximum number of tiles to select uniformly. If None, takes all the tiles.', default=None)
     args = parser.parse_args()
-    args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    args.device = get_device()
     return args

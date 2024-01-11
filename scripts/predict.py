@@ -6,6 +6,7 @@ import pandas as pd
 from glob import glob
 from argparse import ArgumentParser
 from tqdm import tqdm
+from pkg.wsi_mil.utils import get_device
 
 def main():
     parser = ArgumentParser()
@@ -14,7 +15,7 @@ def main():
     parser.add_argument('--output_folder', type=str, required=True)
     args = parser.parse_args()
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = get_device()
     models = glob(os.path.join(args.models_folder, '*.pt.tar'))
     os.makedirs(args.output_folder, exist_ok=True)
     dfs = []
