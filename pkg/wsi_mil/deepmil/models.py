@@ -10,7 +10,7 @@ from sklearn import metrics
 import torch 
 import torchvision
 from abc import ABC, abstractmethod
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 import shutil
 import os
 from .networks import MILGene

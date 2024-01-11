@@ -1,4 +1,3 @@
-from sklearn.model_selection import StratifiedKFold
 import pandas as pd
 from argparse import ArgumentParser
 from wsi_mil.deepmil.aide_csv_maker import test_stratif

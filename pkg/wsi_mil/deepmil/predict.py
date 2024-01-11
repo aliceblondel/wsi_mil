@@ -12,7 +12,7 @@ import os
 from .arguments import get_arguments
 from .models import DeepMIL
 from .dataloader import EmbeddedWSI, Dataset_handler
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from sklearn.preprocessing import Normalizer
 from pkg.wsi_mil.utils import get_device
 

@@ -10,7 +10,7 @@ from .arguments import get_arguments
 from .models import DeepMIL
 from .dataloader import Dataset_handler
 from .predict import load_model
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from pkg.wsi_mil.utils import get_device
 
 def convert_flatten(d, parent_key='', sep='_'):

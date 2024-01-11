@@ -141,5 +141,5 @@ def main(raw_args=None):
     df_res = pd.concat([df_res, mean, std])
     df_res = df_res.set_index('test')
     df_res.to_csv('final_results.csv')
-    result_table.to_csv('resuts_table.csv', index=False)
+    result_table.to_csv('results_table.csv', index=False)
 
