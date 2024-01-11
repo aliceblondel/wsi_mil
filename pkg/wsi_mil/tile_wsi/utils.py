@@ -159,8 +159,10 @@ def make_auto_mask(slide, mask_level):
     im_gray = im_gray.flatten()
     pixels_int = im_gray[np.logical_and(im_gray > 0.1, im_gray < 0.98)]
     t = threshold_otsu(pixels_int)
-    mask = opening(closing(np.logical_and(im_gray<t, im_gray>0.1).reshape(size), selem=square(2)), selem=square(2))
-    final_mask = mask
+    mask = opening(
+        closing(np.logical_and(im_gray<t, im_gray>0.1).reshape(size), footprint=square(2)),
+        footprint=square(2)
+    )
     return mask
 
 def clear_border(mask, prop):
