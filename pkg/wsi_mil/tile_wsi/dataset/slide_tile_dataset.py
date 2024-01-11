@@ -116,7 +116,7 @@ class SlideTileDataset(Dataset):
         return thumbnail
  
     def _make_masked_thumbnail(self, tile_coords, slide, thumbnail, slide_id):
-        thumbnail_file_name = f'{self.zone_id}__{slide_id}_masked_thumbnail.png'
+        thumbnail_file_name = f'{self.id}__{slide_id}_masked_thumbnail.png'
         save_masked_thumbnail = self.visu_folder / thumbnail_file_name
         draw = ImageDraw.Draw(thumbnail)
         ds = slide.level_downsamples[self.mask_level]
