@@ -2,9 +2,10 @@ from argparse import ArgumentParser
 import torch
 from pkg.wsi_mil.utils import get_device
 
-def get_arguments():
+def get_arguments(kwargs):
     parser = ArgumentParser()
-    parser.add_argument('--path_wsi', required=True, type=str, help="path of the files to downsample (tiff or svs files)")
+    parser.add_argument('--f', required=False, type=str, help="path of the files to downsample (tiff or svs files)")
+    parser.add_argument('--path_wsi', required=False, type=str, help="path of the files to downsample (tiff or svs files)")
     parser.add_argument('--path_mask', type=str, default='no', help='either a path to the xml file, if no, then the whole image is tiled')
     parser.add_argument('--level', type=int, default = 1, help="scale to which downsample. I.e a scale of 2 means dimensions divided by 2^2")
     parser.add_argument('--mask_level', type=int, default=-1, help="scale at which has been created the mask. negatives indicate counting levels from the end (slide.level_count)")
@@ -18,5 +19,8 @@ def get_arguments():
     parser.add_argument('--nf', action='store_true', help='Use this flag when using the nextflow pipeline. Either, dont.')
     parser.add_argument('--max_nb_tiles', type=int, help='maximum number of tiles to select uniformly. If None, takes all the tiles.', default=None)
     args = parser.parse_args()
+    if kwargs:
+        for k, v in kwargs.items():
+            setattr(args, k, v)
     args.device = get_device()
     return args

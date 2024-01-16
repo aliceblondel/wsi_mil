@@ -1,0 +1,2 @@
+from pkg.wsi_mil.tile_wsi.encoders.ctranspath import CTranspathModel, ctranspath_tiler
+from pkg.wsi_mil.tile_wsi.encoders.other_encoders import simple_tiler, imagenet_tiler, ciga_tiler, moco_tiler, simclr_tiler

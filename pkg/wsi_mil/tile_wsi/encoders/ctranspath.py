@@ -129,3 +129,19 @@ class CTranspathModel(nn.Module):
         if embeddings.ndim == 1:
             embeddings = embeddings.reshape(1,-1)
         return embeddings
+
+def ctranspath_tiler(slide, path_wsi, name_wsi, outpath, param_tiles, device="cpu", model_path=None, apply_pca=True):
+    device = get_device()
+    model = CTranspathModel(apply_pca=apply_pca).to(device)
+    tiles = []
+    for o, para in enumerate(param_tiles):
+        image = get_image(slide=slide, para=para, numpy=False)
+        image = image.convert("RGB")
+        # image = preprocess(image).unsqueeze(0)
+        image = image.unsqueeze(0)
+        image = image.to(device)
+        with torch.no_grad():
+            t = model(image).squeeze()
+        tiles.append(t.cpu().numpy())
+    mat = np.vstack(tiles)    
+    np.save(os.path.join(outpath['tiles'], f'{name_wsi}_embedded.npy'), mat)

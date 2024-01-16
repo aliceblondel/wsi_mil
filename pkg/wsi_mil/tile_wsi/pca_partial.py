@@ -52,6 +52,11 @@ def main(raw_args=None):
         else:
             batch.append(mat)
 
+    pca_savings(ipca, "./")
+
+    return ipca
+
+def pca_savings(ipca, save_folder):
     msg = " ----------------  RESULTS -------------------- \n"
     s = 0
     for i,o in enumerate(ipca.explained_variance_ratio_, 1):
@@ -59,9 +64,7 @@ def main(raw_args=None):
         msg += "Dimensions until {} explains {}% of the variance \n".format(i, s*100)
     msg += "----------------------------------------------"
 
-    ## Saving
-    with open('./pca/results.txt', 'w') as f:
+    with open(save_folder / 'results.txt', 'w') as f:
         f.write(msg)
 
-    dump(ipca, 'pca/pca_tiles.joblib')
-    return ipca
+    dump(ipca, save_folder / 'pca_tiles.joblib')

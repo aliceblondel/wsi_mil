@@ -1,14 +1,14 @@
-wsi: /path/to/the/output/folder/of/main/tiling/tiler/level_n/
-raw_path: /path/to/raw/wsi/data
-table_data: /path/to/master/table.csv
+wsi: /Users/aliceblondel/Desktop/WSI_vesper/data/Embeddings_complete/ctranspath/level_2/
+raw_path: /Users/aliceblondel/Desktop/WSI_vesper/data/
+table_data: /Users/aliceblondel/Desktop/WSI_vesper/data/split_test_4.csv
 batch_size: 16
 dropout: 0.4
-feature_depth: 512 
+feature_depth: 256 
 lr: 0.003
-num_workers: 16
+num_workers: 1
 model_name: mhmc_layers
-nb_tiles: 10
-epochs: 2
-target_name: target
+nb_tiles: 200
+epochs: 200
+target_name: output_variable
 ref_metric: loss
 
