@@ -12,6 +12,7 @@ def get_arguments(raw_args=None, train=True, config=None):
     parser.add_argument('--config', type=str, help='Path to the config file. If None, use the command line parser', default=config)
     parser.add_argument("--wsi", type=str,help="Path to the tiled WSI global folder (containing several resolutions)")
     parser.add_argument("--target_name", type=str,help='Name of the target variable as referenced in the table_data.')
+    parser.add_argument("--group_by", type=str, help='Name of the variable to group by during the train/validation split in the table_data.', default="patient_id")
     parser.add_argument("--table_data", type=str)
     parser.add_argument("--test_fold",type=int, help="Number of the fold used as a test")
     parser.add_argument('--sampler', type=str, help='Type of tile sampler. dispo : random | biopsie', default='random')

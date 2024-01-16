@@ -10,7 +10,7 @@ from ..tile_wsi.sampler import TileSampler
 from torchvision import transforms
 from functools import reduce
 from collections import Counter
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedGroupKFold
 from collections import Counter
 import os
 
@@ -50,6 +50,7 @@ class EmbeddedWSI(Dataset):
         super(EmbeddedWSI, self).__init__()
         self.label_encoder = None
         self.args = args
+        self.group_by = args.group_by
         self.embeddings = os.path.join(args.wsi, 'mat_pca')
 #        self.ipca = load(os.path.join(args.wsi, 'pca', 'pca_tiles.joblib'))
         self.info = os.path.join(args.wsi, 'info')
@@ -68,6 +69,7 @@ class EmbeddedWSI(Dataset):
             * target_dict : their target values
             * stratif_dict : their stratif values (present in the table_data).
             * sampler_dict : their associated TileSampler object.
+            * group_dict : their group values (present in the table_data).
 
         :return [files, target_dict, sampler_dict, stratif_dict, label_encoder] 
         """
@@ -75,6 +77,7 @@ class EmbeddedWSI(Dataset):
         target_dict = dict() #Key = path to the file, value=target
         sampler_dict = dict()
         stratif_dict = dict()
+        group_dict = dict()
         names = table['ID'].values
         files_filtered =[]
         for name in names:
@@ -84,7 +87,7 @@ class EmbeddedWSI(Dataset):
                     files_filtered.append(filepath)
                     target_dict[filepath] = np.float32(table[table['ID'] == name]['target'].values[0])
                     sampler_dict[filepath] = TileSampler(args=self.args, wsi_path=filepath, info_folder=self.info)
-                    stratif_dict[filepath] = table[table['ID'] == name]['stratif'].values[0]
+                    stratif_dict[filepath] = table[table['ID'] == name][self.group_by].values[0]
         return files_filtered, target_dict, sampler_dict, stratif_dict, label_encoder
 
     def transform_target(self):
@@ -190,7 +193,7 @@ class Dataset_handler:
         dataset = EmbeddedWSI(self.args, use_train=use_train, predict=self.predict)
         return dataset
     
-    def _get_sampler(self, dataset, use_val=True):
+    def _get_sampler(self, dataset, use_val=True, val_size=0.2):
         """_get_sampler.
         Samplers are iterators of the indices corresponding to the current training 
         fold of the dataset. Training set is randomly divided in train and val. This 
@@ -205,12 +208,21 @@ class Dataset_handler:
         if use_val:
             labels_strat = [dataset.stratif_dict[x] for x in dataset.files]
             labels = labels_strat
-            splitter = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=np.random.randint(100))
-            train_indices, val_indices = [x for x in splitter.split(X=labels_strat, y=labels_strat)][0]
-            labels_train = np.array(labels)[np.array(train_indices)]
+            n_splits=int(1/val_size)
+            groups = [dataset.stratif_dict[x] for x in dataset.files]
+            splitter = StratifiedGroupKFold(n_splits=n_splits, random_state=np.random.randint(100))
+            train_indices, val_indices = [x for x in splitter.split(X=labels_strat, y=labels_strat, groups=groups)][0]
             labels_train_strat = np.array(labels_strat)[np.array(train_indices)]
             val_sampler = SubsetRandomSampler(val_indices)
-            train_sampler = WeightedRandomSamplerFromList(self._get_weights_sampling(labels_train_strat, wr_whole_label=self.args.sample_wr_whole_label, no_strat_sampling=self.args.no_strat_sampling), train_indices, len(train_indices))
+            train_sampler = WeightedRandomSamplerFromList(
+                self._get_weights_sampling(
+                    labels_train_strat, 
+                    wr_whole_label=self.args.sample_wr_whole_label, 
+                    no_strat_sampling=self.args.no_strat_sampling
+                ),
+                train_indices, 
+                len(train_indices)
+            )
         else:
             train_sampler = SubsetRandomSampler(list(range(len(dataset))))
             val_sampler = SubsetRandomSampler(list(range(len(dataset))))

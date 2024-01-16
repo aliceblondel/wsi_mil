@@ -9,6 +9,7 @@ parser = ArgumentParser()
 parser.add_argument('--table', type=str)
 parser.add_argument('--target_name', type=str)
 parser.add_argument('--equ_vars', type=str, default=None, help='variables to keep in stratif vars')
+parser.add_argument('--group_by', type=str, default="patient_id", help='variables to group')
 parser.add_argument('-k', type=int, help='number of folds')
 args = parser.parse_args()
 
@@ -18,7 +19,7 @@ equ_vars = args.equ_vars
 if equ_vars is not None:
     equ_vars = args.equ_vars.split(',')
 
-table = test_stratif(args.table, equ_vars, args.target_name, args.k)
+table = test_stratif(args.table, equ_vars, args.target_name, args.group_by, args.k,)
 table.to_csv(args.table, index=False)
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from functools import reduce
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedGroupKFold
 
 def random_sampling(t, N, replace=False):
     if N is None:
@@ -42,28 +42,30 @@ class DatasetSampler:
         self.target = target
         self.k = k
 
-    def set_test(self, table, equ_vars):
+    def set_test(self, table, equ_vars, group_by):
         """
         divide into k-fold the dataset (creation of test_set)
-        according to all the variables in equ_vars and target.
+        according to all the variables in equ_vars and target
+        and grouped by group_by column.
         """
         if type(equ_vars) != list:
             equ_vars = [equ_vars]
         equ_vars = equ_vars + [self.target]
         new_var = self.table.apply(make_new_var(equ_vars), axis=1)
         table['stratif'] = new_var
-        skf = StratifiedKFold(n_splits=self.k, shuffle=True)
+        skf = StratifiedGroupKFold(n_splits=self.k, shuffle=True)
+        groups = table[group_by]
         y = table['stratif'].values
         X = list(range(len(y)))
         dic_test = dict()
         test_vec = np.zeros(len(y))
-        for o, (train, test) in enumerate(skf.split(X, y)):
+        for o, (train, test) in enumerate(skf.split(X, y, groups=groups)):
             for i in test:
                 test_vec[i] = o
         table['test'] = test_vec
         return table
 
-    def make_dataset(self, equ_vars:list, upsample=True,fix_vars=None):
+    def make_dataset(self, equ_vars:list, upsample=True,fix_vars=None, group_by="patient_id"):
         """make_dataset.
 
         returns a table with a stratified and balanced dataset.
@@ -74,9 +76,10 @@ class DatasetSampler:
         :param upsample: strategy to sample the minority/majority class
         for balancing the dataset.
         :param fix_vars: dictionary setting the variables that you want to be fixed.
+        :group_by: name of the column to group by during the train/test split.
         """
         table = select(self.table, dictio=fix_vars)[0]
-        table = self.set_test(table, equ_vars)
+        table = self.set_test(table, equ_vars, group_by=group_by)
         new_var = self.table.apply(make_new_var(equ_vars), axis=1)
         table['equ'] = new_var
         lv_values = set(new_var.values)
@@ -98,48 +101,25 @@ class DatasetSampler:
         selection = pd.concat(tmp)
         return selection
  
-    def downsample(self, fix_vars:dict, equ_vars:list):
-        """
-        Not used (part of make_dataset_now) keep until sure make_dataset works.
-        """
-        table = select(self.table, dictio=fix_vars)[0]
-        self.target_values = set(table[self.target].values)
-        new_var = table.apply(make_new_var(equ_vars), axis=1)
-        table['equ'] = new_var
-        lv_values = set(new_var.values)
-        tmp = []
-        for lv in lv_values:
-            tmp_table = []
-            tmp_N = []
-            for tv in self.target_values:
-                d = {'equ':lv, self.target:tv}
-                sub_table = select(table, d)
-                tmp_table.append(sub_table[0])
-                tmp_N.append(sub_table[1])
-            smallest = min(tmp_N)
-            for tt in tmp_table:
-                tmp.append(random_sampling(tt, smallest, replace=False))
-        selection = pd.concat(tmp)
-        selection = self.set_test(selection, equ_vars)
-        return selection
 
-def test_stratif(table, equ_vars, target, k):
+def test_stratif(table, equ_vars, target, group_by, k):
     """
     divide into k-fold the dataset (creation of test_set)
-    according to all the variables in equ_vars and target.
+    according to all the variables in equ_vars and target
+    and grouped by the column group_by.
     """
-    table = pd.read_csv(table)
     if type(equ_vars) != list:
         equ_vars = [equ_vars]
     equ_vars = equ_vars + [target]
     new_var = table.apply(make_new_var(equ_vars), axis=1)
     table['stratif'] = new_var
-    skf = StratifiedKFold(n_splits=k, shuffle=True)
+    skf = StratifiedGroupKFold(n_splits=k)
     y = table['stratif'].values
     X = list(range(len(y)))
+    groups = table[group_by]
     dic_test = dict()
     test_vec = np.zeros(len(y))
-    for o, (train, test) in enumerate(skf.split(X, y)):
+    for o, (train, test) in enumerate(skf.split(X, y, groups=groups)):
         for i in test:
             test_vec[i] = o
     table['test'] = test_vec
