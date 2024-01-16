@@ -40,13 +40,13 @@ def encode_tiles(
         return None, None
     dataloader = DataLoader(
         data, 
-        batch_size= 1, # min(100, len(data)), 
+        batch_size= min(100, len(data)), 
         shuffle=False, 
         collate_fn = st_collate_fn,
     )
 
     embedding_path = data.save_folder / "mat" 
-    pca_embedding_path = data.save_folder / "pca"
+    pca_embedding_path = data.save_folder / "mat_pca"
     embedding_path.mkdir(exist_ok=True)
     pca_embedding_path.mkdir(exist_ok=True)
 
@@ -70,12 +70,13 @@ def encode_tiles(
     
     del dataloader, data
     del batch
-    return embeddings, xys
+    return embeddings, xys, data.save_folder 
 
 
 if __name__=="__main__":
 
     import argparse
+    from pkg.wsi_mil.tile_wsi.pca_partial import pca_savings
 
     parser = argparse.ArgumentParser(description='Script Description')
     parser.add_argument('--device', type=str, default = "cpu", help='Device')
@@ -91,7 +92,7 @@ if __name__=="__main__":
     with torch.no_grad():
         for zone_id in df["zone_id"].unique():
             print(zone_id)
-            tile_embeddings, tile_xys = encode_tiles(
+            tile_embeddings, tile_xys, save_folder = encode_tiles(
                 model, 
                 zone_id,
                 df,
@@ -102,3 +103,7 @@ if __name__=="__main__":
                 device=args.device, 
                 mask_tolerance=0.9,
             )
+    
+    pca_path = save_folder / "pca" 
+    pca_path.mkdir(exist_ok=True)
+    pca_savings(model.pca, pca_path)
