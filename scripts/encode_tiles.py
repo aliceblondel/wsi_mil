@@ -19,8 +19,9 @@ def encode_tiles(
         max_tiles_per_slide=None,
         device='cpu', 
         mask_tolerance=0.9,
-        mean = [115.32552672, 86.26632765, 111.97963035,],
-        std = [87.34453571, 74.95237046, 86.27281455,],
+        mean = [0.485, 0.456, 0.406],
+        std = [0.229, 0.224, 0.225],
+        save_tiles_img=False,
     ):
 
     data = SlideTileDataset(
@@ -30,6 +31,7 @@ def encode_tiles(
         magnification_tile=magnification_tile, 
         max_tiles_per_slide=max_tiles_per_slide, 
         mask_tolerance=mask_tolerance,
+        save_tiles_img=save_tiles_img,
         save_folder=save_folder,
         transform = None,  
         mean = mean,
@@ -83,6 +85,7 @@ if __name__=="__main__":
     parser.add_argument('--gt_filepath', type=str, help='GT file path')
     parser.add_argument('--data_folder', type=str, help='Data folder')
     parser.add_argument('--embedding_folder', type=str, help='Tile Embedding folder')
+    parser.add_argument('--save_tiles_img', type=bool, default = False, help='Save Tile Images during Tiling')
     args = parser.parse_args()
 
     df = pd.read_excel(args.gt_filepath, index_col=0)
@@ -102,6 +105,7 @@ if __name__=="__main__":
                 max_tiles_per_slide=None,
                 device=args.device, 
                 mask_tolerance=0.9,
+                save_tiles_img=args.save_tiles_img,
             )
     
     pca_path = save_folder / "pca" 

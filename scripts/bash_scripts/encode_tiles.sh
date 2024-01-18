@@ -13,7 +13,9 @@ python encode_tiles.py \
     --device "cuda"\
     --gt_filepath "/cluster/CBIO/data1/ablondel1/WSI_vesper_data/Selected_Contour_annotation.xlsx" \
     --data_folder '/cluster/CBIO/data1/ablondel1/WSI_vesper_data/'\
-    --embedding_folder '/cluster/CBIO/data1/ablondel1/WSI_vesper_data/Embeddings/Ctranspath/'
+    --embedding_folder '/cluster/CBIO/data1/ablondel1/WSI_vesper_data/Embeddings/Ctranspath/'\
+    --save_tiles_img True
+
 
     # device = "mps"
     # gt_filepath = "/Users/aliceblondel/Desktop/WSI_vesper/data/Selected_Contour_annotation.xlsx"
