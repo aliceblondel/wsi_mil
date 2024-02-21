@@ -10,7 +10,7 @@ from ..tile_wsi.sampler import TileSampler
 from torchvision import transforms
 from functools import reduce
 from collections import Counter
-from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.model_selection import GroupKFold
 from collections import Counter
 import os
 
@@ -51,7 +51,7 @@ class EmbeddedWSI(Dataset):
         self.label_encoder = None
         self.args = args
         self.group_by = args.group_by
-        self.embeddings = os.path.join(args.wsi, 'mat_pca')
+        self.embeddings = args.wsi
 #        self.ipca = load(os.path.join(args.wsi, 'pca', 'pca_tiles.joblib'))
         self.info = os.path.join(args.wsi, 'info')
         self.use_train = use_train
@@ -81,13 +81,14 @@ class EmbeddedWSI(Dataset):
         names = table['ID'].values
         files_filtered =[]
         for name in names:
-            filepath = os.path.join(self.embeddings, name+'_embedded.npy')
+            filepath = os.path.join(self.embeddings, name+'.npy')
             if os.path.exists(filepath):
                 if self._is_in_db(name):
                     files_filtered.append(filepath)
-                    target_dict[filepath] = np.float32(table[table['ID'] == name]['target'].values[0])
+                    target_dict[filepath] = np.float32(table[table['ID'] == name]['encoded_target'].values[0])
                     sampler_dict[filepath] = TileSampler(args=self.args, wsi_path=filepath, info_folder=self.info)
-                    stratif_dict[filepath] = table[table['ID'] == name][self.group_by].values[0]
+                    sample_table = table[table['ID'] == name]
+                    stratif_dict[filepath] = sample_table[self.args.target_name].values[0] + "_" + sample_table[self.group_by].values[0]
         return files_filtered, target_dict, sampler_dict, stratif_dict, label_encoder
 
     def transform_target(self):
@@ -98,7 +99,7 @@ class EmbeddedWSI(Dataset):
         table = self.table_data
         targets = table[self.args.target_name].values
         label_encoder = LabelEncoder().fit(targets)
-        table['target'] = label_encoder.transform(targets)
+        table['encoded_target'] = label_encoder.transform(targets)
         self.table_data = table
         return table, label_encoder
 
@@ -209,9 +210,8 @@ class Dataset_handler:
             labels_strat = [dataset.stratif_dict[x] for x in dataset.files]
             labels = labels_strat
             n_splits=int(1/val_size)
-            groups = [dataset.stratif_dict[x] for x in dataset.files]
-            splitter = StratifiedGroupKFold(n_splits=n_splits, random_state=np.random.randint(100))
-            train_indices, val_indices = [x for x in splitter.split(X=labels_strat, y=labels_strat, groups=groups)][0]
+            splitter = GroupKFold(n_splits=n_splits)
+            train_indices, val_indices = [x for x in splitter.split(X=labels_strat, y=labels_strat, groups=labels_strat)][0]
             labels_train_strat = np.array(labels_strat)[np.array(train_indices)]
             val_sampler = SubsetRandomSampler(val_indices)
             train_sampler = WeightedRandomSamplerFromList(
@@ -252,22 +252,9 @@ class Dataset_handler:
             print('not_ok')
         else:
             print('not_ok')
-            table = self.dataset_train.table_data
-            target = self.args.target_name
-            target_set = list(set(table[target].values))
-            target_set = [str(x) for x in target_set]
+            labels = [l.split('_')[-2] for l in labels]
             cc = Counter(labels)            
-            weights = []
-            for l in labels:
-                t_sample = l.split('_')[-2]
-                t_op = target_set.index(t_sample)
-                counts = 0
-                for ind in range(len(target_set)):
-                    v_op = l.split('_') # si l = 'tnbc_lo_' je veux v_op = tnbc_hi_ 
-                    v_op[-2] = target_set[ind] # et en compter l'effectif.
-                    v_op = reduce(lambda x,y: x+'_'+y, v_op)
-                    counts += cc[v_op]
-                weights.append(counts/cc[l])
+            weights = [1/cc[x] for x in labels]
         return weights
 
 class WeightedRandomSamplerFromList(torch.utils.data.Sampler):

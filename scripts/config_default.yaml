@@ -1,14 +1,14 @@
-wsi: /Users/aliceblondel/Desktop/WSI_vesper/data/Embeddings_complete/ctranspath/level_2/
-raw_path: /Users/aliceblondel/Desktop/WSI_vesper/data/
-table_data: /Users/aliceblondel/Desktop/WSI_vesper/data/split_test_4.csv
+wsi: /cluster/CBIO/data1/ablondel1/WSI_vesper_data/Embeddings/Ctranspath_m10_images/tiles
+raw_path: /cluster/CBIO/data1/ablondel1/WSI_vesper_data/
+table_data: /cluster/CBIO/data1/ablondel1/WSI_vesper_data/split_test_3.csv
 batch_size: 16
 dropout: 0.4
-feature_depth: 256 
+feature_depth: 768 
 lr: 0.003
 num_workers: 1
 model_name: mhmc_layers
 nb_tiles: 200
-epochs: 200
-target_name: output_variable
+epochs: 1000
+target_name: target
 ref_metric: loss
 

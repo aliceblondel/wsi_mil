@@ -2,7 +2,7 @@
 train process in simple_cross_val.nf. On the contrary to hyperparameter search, 
 no config params !
 """
-from collections import MutableMapping 
+from collections.abc import MutableMapping
 from argparse import ArgumentParser
 import numpy as np
 from glob import glob

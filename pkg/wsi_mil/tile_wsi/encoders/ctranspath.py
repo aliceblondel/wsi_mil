@@ -11,7 +11,7 @@ from pkg.wsi_mil.tile_wsi.utils import get_image
 from pkg.wsi_mil.utils import get_device
 
 def download_ctranspath_weights():
-    model_root = Path('./model_weights/')
+    model_root = Path('../model_weights/')
     model_root.mkdir(parents=True, exist_ok=True)
     model_path = model_root / 'ctranspath.pth'
     if model_path.exists():

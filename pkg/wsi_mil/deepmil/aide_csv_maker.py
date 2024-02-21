@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from functools import reduce
-from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.model_selection import GroupKFold
 
 def random_sampling(t, N, replace=False):
     if N is None:
@@ -53,7 +53,7 @@ class DatasetSampler:
         equ_vars = equ_vars + [self.target]
         new_var = self.table.apply(make_new_var(equ_vars), axis=1)
         table['stratif'] = new_var
-        skf = StratifiedGroupKFold(n_splits=self.k, shuffle=True)
+        skf = GroupKFold(n_splits=self.k, shuffle=True)
         groups = table[group_by]
         y = table['stratif'].values
         X = list(range(len(y)))
@@ -113,7 +113,7 @@ def test_stratif(table, equ_vars, target, group_by, k):
     equ_vars = equ_vars + [target]
     new_var = table.apply(make_new_var(equ_vars), axis=1)
     table['stratif'] = new_var
-    skf = StratifiedGroupKFold(n_splits=k)
+    skf = GroupKFold(n_splits=k)
     y = table['stratif'].values
     X = list(range(len(y)))
     groups = table[group_by]
