@@ -41,6 +41,8 @@ def get_arguments(raw_args=None, train=True, config=None):
     parser.add_argument('-k', type=int, default=5, help='k parameter to select topk and lowk tiles')
     parser.add_argument('--pooling_fct', type=str, default='ilse', help='pooling function used. max, mean, ilse, conan possible')
     parser.add_argument('--instance_transf', default=0, type=int, help='either 1 or 0, wether to transform the tiles before classification and attention')
+    parser.add_argument('--features_tiles_layer', default="identity", type=str, help='Defines de feature tile layer to apply before the MIL model. Either identity, linear or linearbatchnorm')
+    parser.add_argument('--encoding_depth', default=None, type=str, help='Depth of the tile encoding. Only used if features_tiles_layer is linear.')
 
     parser.add_argument('--no_strat_sampling', default=0, type=int, help='if =1, do not use strategic sampling - even to balance the dataset -')
 

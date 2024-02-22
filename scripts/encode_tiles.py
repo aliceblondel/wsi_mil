@@ -21,7 +21,7 @@ def encode_tiles(
         mask_tolerance=0.9,
         mean = [0.485, 0.456, 0.406],
         std = [0.229, 0.224, 0.225],
-        save_tiles_img=False,
+        save_tiles_img = False,
     ):
 
     data = SlideTileDataset(
@@ -47,8 +47,9 @@ def encode_tiles(
         collate_fn = st_collate_fn,
     )
 
-    embedding_path = data.save_folder / "mat" 
-    pca_embedding_path = data.save_folder / "mat_pca"
+    data_save_folder = data.save_folder
+    embedding_path = data_save_folder / "mat" 
+    pca_embedding_path = data_save_folder / "mat_pca"
     embedding_path.mkdir(exist_ok=True)
     pca_embedding_path.mkdir(exist_ok=True)
 
@@ -72,7 +73,7 @@ def encode_tiles(
     
     del dataloader, data
     del batch
-    return embeddings, xys, data.save_folder 
+    return embeddings, xys, data_save_folder
 
 
 if __name__=="__main__":
@@ -85,10 +86,11 @@ if __name__=="__main__":
     parser.add_argument('--gt_filepath', type=str, help='GT file path')
     parser.add_argument('--data_folder', type=str, help='Data folder')
     parser.add_argument('--embedding_folder', type=str, help='Tile Embedding folder')
+    parser.add_argument('--apply_pca', type=bool, default = True, help='Save emb after PCA')
     parser.add_argument('--save_tiles_img', type=bool, default = False, help='Save Tile Images during Tiling')
     args = parser.parse_args()
 
-    df = pd.read_excel(args.gt_filepath, index_col=0)
+    df = pd.read_excel(args.gt_filepath)
     model = CTranspathModel().to(args.device)
 
     model.eval()

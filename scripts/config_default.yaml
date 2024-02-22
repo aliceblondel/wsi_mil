@@ -3,12 +3,14 @@ raw_path: /cluster/CBIO/data1/ablondel1/WSI_vesper_data/
 table_data: /cluster/CBIO/data1/ablondel1/WSI_vesper_data/split_test_3.csv
 batch_size: 16
 dropout: 0.4
-feature_depth: 768 
+encoding_depth: 768
+feature_depth: 256 
+features_tiles_layer: linear
 lr: 0.003
-num_workers: 1
+num_workers: 4
 model_name: mhmc_layers
 nb_tiles: 200
 epochs: 1000
 target_name: target
 ref_metric: loss
-
+batch_size: 16

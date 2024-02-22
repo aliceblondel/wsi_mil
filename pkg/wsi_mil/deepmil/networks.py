@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 import numpy as np
 import torchvision
+import torch.nn as nn
 
 def is_in_args(args, name, default):
     """Checks if the parammeter is specified in the args Namespace
@@ -85,7 +86,8 @@ class LinearBatchNorm(Module):
             ReLU(),# Added 25/09
             Dropout(p=dropout),# Added 25/09
             self.get_norm(constant_size, dim_batch),
-                )
+        )
+        self.norm = self.get_norm(constant_size, dim_batch)
     def get_norm(self, constant_size, out_features):
         if not constant_size:
             norm = InstanceNorm1d(out_features)
@@ -95,6 +97,11 @@ class LinearBatchNorm(Module):
 
     def forward(self, x):
         x = self.block(x)
+        if len(x.shape)==2:
+            x = self.norm(x)
+        else:
+            bs, nc, nf = x.shape
+            x = self.norm(x.view(-1, nf)).view(bs, nc, nf)
         return x
 
 class MHMC_layers(Module):
@@ -571,7 +578,21 @@ class MILGene(Module):
     def __init__(self, args):
         super(MILGene, self).__init__()
         self.args = args
-        self.features_tiles = Identity(args)
+        if self.args.features_tiles_layer == "identity" or self.args.encoding_depth is None :
+            self.features_tiles = Identity(args)
+        elif self.args.features_tiles_layer == "linear":
+            self.features_tiles = nn.Linear(self.args.encoding_depth,self.args.feature_depth)
+        elif self.args.features_tiles_layer == "linearbatchnorm":
+            self.features_tiles = LinearBatchNorm(
+                in_features = self.args.encoding_depth,
+                out_features = self.args.feature_depth,
+                dropout = self.args.dropout,
+                constant_size = self.args.constant_size,
+            )
+        else:
+            raise NotImplementedError(
+                "The value of 'features_tiles_layer' is neither 'identity' nor 'linear'. Handling not implemented for this value."
+            )
         self.mil = self.models[args.model_name](args)
 
     def forward(self, x):

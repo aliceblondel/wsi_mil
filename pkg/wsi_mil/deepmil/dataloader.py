@@ -41,7 +41,7 @@ class EmbeddedWSI(Dataset):
                 * target_name, str, name of the target variable (name of column in table_data)
                 * device, torch.device
                 * test_fold, int, number of the fold used as test.
-                * feature_depth, int, number of dimension of the embedded space to keep. (0<x<2048)
+                * encoding_depth, int, number of dimension of the embedded space to keep. (0<x<2048)
                 * nb_tiles, int, if 0 : take all the tiles, will need custom collate_fn, else randomly picks $nb_tiles in each WSI.
                 * train, bool, if True : extract the data s.t fold != test_fold, if False s.t. fold == testse_fold
                 * sampler, str: tile sampler. dispo : random_sampler | random_biopsie
@@ -119,7 +119,7 @@ class EmbeddedWSI(Dataset):
 
     def __getitem__(self, idx):
         path = self.files[idx]
-        mat = np.load(path)[:,:self.args.feature_depth]
+        mat = np.load(path)[:,:self.args.encoding_depth]
         mat = self._select_tiles(path, mat)
         mat = torch.from_numpy(mat).float() #ToTensor
         target = self.target_dict[path]
