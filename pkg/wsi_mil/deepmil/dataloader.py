@@ -29,15 +29,15 @@ class EmbeddedWSI(Dataset):
         * a $args.target_name column, of course
         * a test columns, stating the test_fold number of each image.
     """
-    def __init__(self, args, use_train, predict=False):
+    def __init__(self, args, use_train, predict=False,):
         """Initialises the MIL model.
         
         Parameters
         ----------
         args : Namespace
             must contain :
-                * table_data, str, path to the data info (.csv), with 'ID' column containing name of wsi.
-                * wsi, str, path to the the output folder of a tile_image process. #embedded WSI (.npy) with name matching the 'ID' of table_data
+                * table_data, str, path to the data info (.csv), with id_col column containing name of wsi.
+                * wsi, str, path to the the output folder of a tile_image process. #embedded WSI (.npy) with name matching the id_col of table_data
                 * target_name, str, name of the target variable (name of column in table_data)
                 * device, torch.device
                 * test_fold, int, number of the fold used as test.
@@ -56,9 +56,12 @@ class EmbeddedWSI(Dataset):
         self.info = os.path.join(args.wsi, 'info')
         self.use_train = use_train
         self.predict = predict
+        self.id_col = args.id_col
+        self.test_col = args.test_col
         self.table_data = pd.read_csv(args.table_data) if isinstance(args.table_data, str) else args.table_data
         self.files, self.target_dict, self.sampler_dict, self.stratif_dict, self.label_encoder = self._make_db()
         self.constant_size = (args.nb_tiles != 0)
+    
         
     def _make_db(self):
         """_make_db.
@@ -78,16 +81,16 @@ class EmbeddedWSI(Dataset):
         sampler_dict = dict()
         stratif_dict = dict()
         group_dict = dict()
-        names = table['ID'].values
+        names = table[self.id_col].values
         files_filtered =[]
         for name in names:
             filepath = os.path.join(self.embeddings, name+'.npy')
             if os.path.exists(filepath):
                 if self._is_in_db(name):
                     files_filtered.append(filepath)
-                    target_dict[filepath] = np.float32(table[table['ID'] == name]['encoded_target'].values[0])
+                    target_dict[filepath] = np.float32(table[table[self.id_col] == name]['encoded_target'].values[0])
                     sampler_dict[filepath] = TileSampler(args=self.args, wsi_path=filepath, info_folder=self.info)
-                    sample_table = table[table['ID'] == name]
+                    sample_table = table[table[self.id_col] == name]
                     stratif_dict[filepath] = sample_table[self.args.target_name].values[0] + "_" + sample_table[self.group_by].values[0]
         return files_filtered, target_dict, sampler_dict, stratif_dict, label_encoder
 
@@ -108,9 +111,9 @@ class EmbeddedWSI(Dataset):
         """
         table = self.table_data
         is_in_db = True
-        if 'test' in table.columns and (not self.predict):
-            is_in_train = (table[table['ID'] == name]['test'] != self.args.test_fold).values[0] # "keep if i'm not test"
-            is_in_test = (table[table['ID'] == name]['test'] == self.args.test_fold).values[0] 
+        if self.test_col in table.columns and (not self.predict):
+            is_in_train = (table[table[self.id_col] == name][self.test_col] != self.args.test_fold).values[0] # "keep if i'm not test"
+            is_in_test = (table[table[self.id_col] == name][self.test_col] == self.args.test_fold).values[0] 
             is_in_db = is_in_train if self.use_train else is_in_test
         return is_in_db
 

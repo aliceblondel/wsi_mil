@@ -150,6 +150,7 @@ class DeepMIL(Model):
         self.schedulers = self._get_schedulers(args)
         self.train_loader, self.val_loader = self._get_data_loaders(args, with_data)
         self.label_encoder = self.train_loader.dataset.label_encoder if label_encoder is None else label_encoder
+        self.class_names = args.class_names
         # when training ipca = None, when predicting, ipca is given when loading.
 #        self.ipca = self.train_loader.dataset.ipca if ipca is None else ipca 
         self.ipca =  ipca 
@@ -191,8 +192,13 @@ class DeepMIL(Model):
         if args.lr_scheduler == 'linear':
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau
             schedulers = [scheduler(optimizer=o, patience=self.args.patience_lr, factor=0.3) for o in self.optimizers]
-        if args.lr_scheduler == 'cos':
+        elif args.lr_scheduler == 'cos':
             schedulers = [torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer=o, T_0=1, T_mult=2) for o in self.optimizers]
+        elif args.lr_scheduler == 'constant':
+            schedulers = [torch.optim.lr_scheduler.ConstantLR(optimizer=o) for o in self.optimizers]
+        else:
+            raise ValueError(f"Unsupported scheduler type: {args.lr_scheduler}. Please use 'linear', 'cos', or 'constant'.")
+
         return schedulers
 
     def _get_optimizer(self, args):
@@ -313,10 +319,22 @@ class DeepMIL(Model):
         """
         report = metrics.classification_report(y_true=y_true, y_pred=self._predict_function(scores), output_dict=True, zero_division=0)
         ba = metrics.balanced_accuracy_score(y_true=y_true, y_pred=self._predict_function(scores))
-        metrics_dict = {'balanced_acc': ba, 'accuracy': report['accuracy'], "precision": report['macro avg']['precision'], 
-            "recall": report['macro avg']['recall'], "f1-score": report['macro avg']['f1-score']}
         if self.args.num_class <= 2:
-            metrics_dict['roc_auc'] = metrics.roc_auc_score(y_true=y_true, y_score=scores[:,1])
+            scores = scores[:,1]
+        roc_auc_ovo = metrics.roc_auc_score(y_true, scores, average='macro', multi_class='ovo',)
+        roc_auc_ovr = metrics.roc_auc_score(y_true, scores, average='macro', multi_class='ovr')
+        conf_matrix = metrics.confusion_matrix(y_true=y_true, y_pred=self._predict_function(scores), labels=self.label_encoder.transform(self.class_names))
+
+        metrics_dict = {
+            'balanced_acc': ba, 
+            'accuracy': report['accuracy'], 
+            "precision": report['macro avg']['precision'], 
+            "recall": report['macro avg']['recall'], 
+            "f1-score": report['macro avg']['f1-score'],
+            "roc_auc_ovo": roc_auc_ovo,
+            "roc_auc_ovr": roc_auc_ovr,
+            "conf_matrix": conf_matrix,
+        }
         metrics_dict['epoch'] = self.counter['epoch']
         return metrics_dict
 

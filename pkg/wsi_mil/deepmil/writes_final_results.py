@@ -122,7 +122,7 @@ def main(raw_args=None):
     parser.add_argument('--path', default='.', type=str, help='path to the folder where the best models are stored.')
     args = parser.parse_args(raw_args)
 
-    models_path = glob(os.path.join(args.path, 'model_best_test_*_repeat_*.pt.tar'), recursive=True)
+    models_path = glob(os.path.join(args.path, 'best_models/model_best_test_*_repeat_*.pt.tar'), recursive=True)
     model = load_model(models_path[0], 'cpu')
     table = pd.read_csv(model.args.table_data)
  

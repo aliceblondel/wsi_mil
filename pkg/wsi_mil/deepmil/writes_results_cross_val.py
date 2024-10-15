@@ -115,11 +115,12 @@ def copy_best_to_root(path, param):
     and the config file in the root path of the experiment.
     if cross_val : just testing a single config. therefore no copy to do
     """
+    os.makedirs("best_models", exist_ok=True)
     for p in param:
         t, r = p
         model_path = os.path.join(path, "test_{}/rep_{}/model_best.pt.tar".format(t, r))
         model_path = os.path.abspath(model_path)
-        shutil.copy(model_path, 'model_best_test_{}_repeat_{}.pt.tar'.format(t, r))
+        shutil.copy(model_path, 'best_models/model_best_test_{}_repeat_{}.pt.tar'.format(t, r))
 
 def main(raw_args=None):
     parser = ArgumentParser(raw_args)
@@ -136,6 +137,7 @@ def main(raw_args=None):
         args_m = state['args']
         references = extract_references(args_m)
         metrics = state['best_metrics']
+        del metrics['conf_matrix']
         #metrics = convert_flatten(metrics) I flattened the metrics directly in the models.py file
         references.update(metrics)
         rows.append(references)
